@@ -20,16 +20,16 @@ data_ns = Namespace(
     path = "./data",
     spatial_dim = 2,
     signal_dim = 3,
-    num_signals_train = 128,
-    num_signals_test = 32,
-    batch_size = 32,
+    num_signals_train = 10,
+    num_signals_test = 10,
+    batch_size = 5,
     num_workers = 0,
 )
 train_ns = Namespace(
     num_epochs = 1000,
-    lr_enf = 1e-3,
-    lr_latents = 20,
-    num_inner_steps = 1,
+    lr_enf = 5e-4,
+    lr_latents = 1000.,
+    num_inner_steps = 3,
     weight_decay = 0.0,
     val_ratio = 10,
     visualise_ratio = 5,
@@ -41,11 +41,11 @@ train_ns = Namespace(
 enf_ns = Namespace(
     num_latents = 25,
     latent_dim = 32,
-    num_hidden = 128,
-    att_dim = 128,
+    num_hidden = 256,
+    att_dim = 256,
     num_heads = 3,
-    emb_freq_q = 1,
-    emb_freq_v = 5,
+    emb_freq_q = 2.0,
+    emb_freq_v = 4.0,
     nearest_k = 4
 )
 
@@ -154,6 +154,8 @@ def inner_loop(config, coords, imgs):
         # Update latents
         # p = p - config.train.lr_latents * grad_p[0]
         c = c - config.train.lr_latents * grad_c[0]
+
+    out = enf(coords, p, c, g)
     return out, (p, c, g)
 
 
@@ -175,7 +177,7 @@ for i in (pbar := trange(config.train.num_epochs)):
 
         # Calc loss
         loss = F.mse_loss(img, out, reduction='mean')
-        train_loss += loss
+        train_loss += loss.item()
 
         # Backward
         loss.backward()
@@ -191,6 +193,14 @@ for i in (pbar := trange(config.train.num_epochs)):
     if config.train.log_wandb:
         wandb.log({"epoch_train_mse": train_loss / len(test_dloader)})
 
+    if steps % config.train.visualise_ratio == 0:
+        visualise_latents(
+            enf, coords, (p, c, g),
+            img, img_shape, 
+            save_to_disk=config.train.save_im_local,
+            wandb_log=config.train.log_wandb
+        )
+
 
     if steps % config.train.val_ratio == 0:
         val_loss = 0
@@ -203,7 +213,7 @@ for i in (pbar := trange(config.train.num_epochs)):
 
             #  Calc loss
             loss = F.mse_loss(img, out, reduction='mean')
-            val_loss += loss
+            val_loss += loss.item()
 
             # Update pbar
             pbar.set_description(
@@ -218,11 +228,11 @@ for i in (pbar := trange(config.train.num_epochs)):
             torch.save(enf.state_dict(), config.train.save_path / "enf_params.pt")
             torch.save(config, config.train.save_path / "config.pt")
 
-        if steps % config.train.visualise_ratio == 0:
-            visualise_latents(
-                enf, coords, (p, c, g),
-                img, img_shape, 
-                save_to_disk=config.train.save_im_local,
-                wandb_log=config.train.log_wandb
-            )
+        # if steps % config.train.visualise_ratio == 0:
+        #     visualise_latents(
+        #         enf, coords, (p, c, g),
+        #         img, img_shape, 
+        #         save_to_disk=config.train.save_im_local,
+        #         wandb_log=config.train.log_wandb
+        #     )
     
