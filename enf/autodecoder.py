@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 
 
-class auto_decoder(nn.Module):
+class AutoDecoder(nn.Module):
 
     def __init__(self, 
             num_samples: int,

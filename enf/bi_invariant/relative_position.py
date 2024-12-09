@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class relative_position(nn.Module):
+class RelativePosition(nn.Module):
     """ Calculate the relative position between two sets of coordinates in N dimensions.
 
         Args:

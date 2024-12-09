@@ -19,12 +19,12 @@ class SinusoidalPosEmbedding(nn.Module):
 
     def __init__(self, num_in, num_freqs: int, freq: float):
         super().__init__()
-
         self.num_freqs = num_freqs
         self.freq = freq
 
-        # TODO: Layer should still be initialised around self.freq? 
+        # Set the embedding frequency.
         self.emb_layer = nn.Linear(in_features=num_in, out_features=self.num_freqs // 2, bias=False)
+        nn.init.normal_(self.emb_layer.weight, std=self.freq)
 
     def __call__(self, coords: torch.Tensor) -> torch.Tensor:
         # Map coords to from [-1,1] to [0, 2pi]
