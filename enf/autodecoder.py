@@ -51,7 +51,7 @@ class AutoDecoder(nn.Module):
 
 
 if __name__ == "__main__":
-    ad = auto_decoder(
+    ad = AutoDecoder(
         num_samples=5, 
         num_latents=25, 
         latent_dim=25,
