@@ -2,17 +2,6 @@ from typing import Tuple
 
 import torch
 import torch.nn as nn
-
-
-# class PosEmb(nn.Module):
-#     num_freqs: int
-#     freq: float
-
-#     @nn.compact
-#     def __call__(self, coords: jnp.ndarray) -> jnp.ndarray:
-#         emb = nn.Dense(self.num_freqs // 2, kernel_init=nn.initializers.normal(self.freq), use_bias=False)(
-#             jnp.pi * (coords + 1))  # scale to [0, 2pi]
-#         return jnp.sin(jnp.concatenate([coords, emb, emb + jnp.pi / 2.0], axis=-1))
     
 
 class SinusoidalPosEmbedding(nn.Module):

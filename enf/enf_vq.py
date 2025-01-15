@@ -118,6 +118,7 @@ class EquivariantNeuralField(nn.Module):
         """
 
         # Do vector quantization
+        c = self.vq(c)
 
         # Map latent to hidden space
         c = self.W_stem(c)
