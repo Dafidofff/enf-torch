@@ -16,13 +16,14 @@ from utils.visualise import visualise_latents
 # Define the config for train and model
 config = defaultdict(dict)
 data_ns = Namespace(
+    device = "cuda",
     name = "cifar10",               # cifar10, stl10
     path = "./data",
     spatial_dim = 2,
     signal_dim = 3,
-    num_signals_train = 10,
-    num_signals_test = 10,
-    batch_size = 5,
+    num_signals_train = -1,
+    num_signals_test = 128,
+    batch_size = 32,
     num_workers = 0,
 )
 train_ns = Namespace(
@@ -33,7 +34,7 @@ train_ns = Namespace(
     weight_decay = 0.0,
     val_ratio = 10,
     visualise_ratio = 5,
-    log_wandb = False,
+    log_wandb = True,
     save_im_local = True,
     checkpoint_path = None,
     save_path = "./checkpoints/",
@@ -100,6 +101,9 @@ optimizer = torch.optim.Adam([
     {'params': enf.parameters(), 'lr': config.train.lr_enf},
 ], weight_decay=config.train.weight_decay)
 
+# Set everything to device
+enf = enf.to(config.data.device)
+coords = coords.to(config.data.device)
 
 ############################################
 # Meta learning functions
@@ -139,6 +143,11 @@ def inner_loop(config, coords, imgs):
         config.enf.latent_dim
     )
 
+    # Set to device
+    p = p.to(config.data.device)
+    c = c.to(config.data.device)
+    g = g.to(config.data.device)
+
     for i in range(config.train.num_inner_steps):
         # Reconstruct singal with latents
         out = enf(coords, p, c, g)
@@ -171,6 +180,9 @@ for i in (pbar := trange(config.train.num_epochs)):
     for batch in train_dloader:
         img, _, idx = batch
         img = img.reshape(config.data.batch_size, -1, config.data.signal_dim)
+
+        # Set to device
+        img = img.to(config.data.device)
 
         # Get latents for samples and unpack
         out, (p, c, g) = inner_loop(config, coords, img)

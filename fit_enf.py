@@ -177,7 +177,7 @@ for i in (pbar := trange(config.train.num_epochs)):
 
         if epoch_val_loss < best_val_loss:
             torch.save(enf.state_dict(), config.train.save_path / "enf_params.pt")
-            torch.save(AutoDecoder.state_dict(), config.train.save_path / "ad_params.pt")
+            torch.save(AutoDecoder, config.train.save_path / "ad_params.pt")
             torch.save(config, config.train.save_path / "config.pt")
 
         if steps % config.train.visualise_ratio == 0:
